@@ -10,6 +10,8 @@ from collections.abc import Sequence
 from dataclasses import asdict
 from pathlib import Path
 
+from sklearn.pipeline import Pipeline
+
 from config import (
     CLASSIFIERS,
     DEFAULT_CLASSIFIER,
@@ -35,6 +37,7 @@ LOOP_HELP = "type a message to classify · 'quit' / 'exit' / ':q' to leave"
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser for the spam-detector CLI."""
     parser = argparse.ArgumentParser(
         prog="spam-detector",
         description=(
@@ -88,7 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _interactive_loop(pipeline) -> None:
+def _interactive_loop(pipeline: Pipeline) -> None:
     """FR-B6: read messages from stdin until quit/exit/:q/EOF/Ctrl+C."""
     print(f"\nInteractive mode — {LOOP_HELP}")
     while True:
@@ -107,6 +110,10 @@ def _interactive_loop(pipeline) -> None:
 
 
 def run(args: argparse.Namespace) -> int:
+    """Execute the CLI: load or train, evaluate, optionally save, then loop.
+
+    Returns the process exit code (0 on success).
+    """
     if args.load_model:
         try:
             pipeline = load_model(args.load_model)
@@ -159,6 +166,10 @@ def run(args: argparse.Namespace) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Parse argv, configure logging, and run the CLI.
+
+    Returns the process exit code (0 on success, 1 on handled errors).
+    """
     args = build_parser().parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,

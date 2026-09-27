@@ -100,6 +100,7 @@ def resolve_dataset_path(explicit: Path | str | None = None) -> Path | None:
 
 
 def _normalize_frame(raw: pd.DataFrame, source: Path) -> pd.DataFrame:
+    """Validate a raw labeled frame and normalize it to text/label columns."""
     if raw.shape[1] < 2:
         raise ValueError(
             f"Dataset {source} must have at least 2 columns (label, text); "
@@ -128,6 +129,7 @@ def _normalize_frame(raw: pd.DataFrame, source: Path) -> pd.DataFrame:
 
 
 def _read_labeled_file(path: Path) -> pd.DataFrame:
+    """Read a CSV/TSV labeled file into a raw string frame."""
     separator = "\t" if path.suffix.lower() in {".tsv", ".tab"} else ","
     try:
         raw = pd.read_csv(path, sep=separator, header=None, dtype=str, on_bad_lines="skip")
@@ -157,7 +159,7 @@ def split_data(
     df: pd.DataFrame,
     test_size: float = TEST_SIZE,
     random_state: int = RANDOM_STATE,
-):
+) -> tuple[pd.Series, pd.Series, pd.Series, pd.Series]:
     """Stratified train/test split (FR-B3, AD-B4). Returns X_train, X_test, y_train, y_test."""
     if len(df) < 4:
         raise ValueError(f"Need at least 4 rows to split; got {len(df)}.")
