@@ -1,5 +1,5 @@
 <!-- bmad:context -->
-<!-- Verified 2026-09-27 (pre-git, no SHA yet — provenance updated on first commit). Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
+<!-- Verified 2026-09-27 against b2dd15e. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
 
 ## spam-detector
 
@@ -7,6 +7,8 @@ SMS spam text classifier for the university semifinals case study (Project B). F
 
 ## Policy
 
+- Work on a branch per sprint story off `main` — `feat/<story-key>` (e.g. `feat/3-1-persist-the-trained-model-and-its-metrics`), or `fix/`/`chore/`/`docs/`; merge back to `main`, then delete the branch — never commit story work straight onto `main`.
+- Commit atomically, one concern per commit, as Conventional Commits `type(scope): subject` (`feat(dataset): …`, `fix(cli): …`, `test`, `docs`, `chore`); never bundle unrelated changes — `PROMPTS_LOG.md` entries go in their own commit, not with code.
 - Append every user→AI prompt to root `PROMPTS_LOG.md` under a `<PHASE>-<NNN>` ID (prefixes `INIT`/`PM`/`ARCH`/`DEV`/`QA`) — append-only, never overwrite; re-prompts are new entries.
 - Never hand-edit `_bmad/` or `.agents/` — installer-managed; re-run the BMAD installer instead.
 - Never fabricate or commit `data/sms_spam_collection.csv` (user-supplied, gitignored). `models/` is gitignored too — regenerate weights, don't commit them.
