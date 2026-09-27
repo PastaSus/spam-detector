@@ -606,7 +606,9 @@ class TestEdgeCases:
         out = capsys.readouterr().out
         assert re.search(r"  SPAM \(\d+\.\d% confidence\)", out)
         assert re.search(r"  HAM \(\d+\.\d% confidence\)", out)
-        spam_line = next(line for line in out.splitlines() if "SPAM" in line)
+        spam_line = next(
+            line for line in out.splitlines() if "SPAM" in line and "confidence" in line
+        )
         assert float(re.search(r"\((\d+\.\d)%", spam_line).group(1)) > 50.0
         assert "Goodbye." in out
 
