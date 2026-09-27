@@ -119,6 +119,10 @@ def run(args: argparse.Namespace) -> int:
             pipeline = load_model(args.load_model)
         except Exception as exc:
             raise ValueError(f"Could not load model from {args.load_model}: {exc}") from exc
+        if args.save_model:
+            logger.warning(
+                "--save-model is ignored with --load-model: nothing retrained, nothing re-saved."
+            )
         stored = load_metrics(args.load_model)
         if stored:
             try:

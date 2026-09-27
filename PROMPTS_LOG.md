@@ -32,4 +32,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-017 | 2026-09-27 | Tech Lead | aight option 1 then. | accepted full-build coverage; all 12 stories + 4 epics marked done | Done |
 | INIT-018 | 2026-09-27 | Tech Lead | what do you recommend | recommended AGENTS.md block, flag-combo fix, INIT backfill by user, skip retrospective | Done |
 | INIT-019 | 2026-09-27 | Tech Lead | alright go ahead | approved AGENTS.md splice + flag-combo fix (queued behind story backfill) | Done |
-| INIT-020 | 2026-09-27 | Tech Lead | we dont have epic 1 and epic 2 stories in _bmad-output/implementation-artifacts folder thats weird make sure to generate them | backfill story spec files 1-1..2-2 as done from epics.md + code | In progress |
+| INIT-020 | 2026-09-27 | Tech Lead | we dont have epic 1 and epic 2 stories in _bmad-output/implementation-artifacts folder thats weird make sure to generate them | backfill story spec files 1-1..2-2 as done from epics.md + code | Done |
+| INIT-021 | 2026-09-27 | Tech Lead | do that then? | AGENTS.md git-rules splice + load/save combo fix | In progress |
