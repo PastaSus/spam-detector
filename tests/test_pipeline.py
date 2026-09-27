@@ -382,6 +382,28 @@ class TestPersistence:
 
         assert run(args) == 0
 
+    def test_cli_load_model_warns_on_ignored_save_flag(
+        self, trained_report, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        pipeline, report = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path, metrics=asdict(report))
+        resave_path = tmp_path / "resaved.joblib"
+        args = Namespace(
+            load_model=str(model_path),
+            data=None,
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=str(resave_path),
+            no_loop=True,
+        )
+
+        with caplog.at_level(logging.WARNING):
+            assert run(args) == 0
+
+        assert "--save-model is ignored" in caplog.text
+        assert not resave_path.exists()
+
 
 class TestInteractiveLoop:
     @pytest.fixture()
