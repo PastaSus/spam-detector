@@ -19,7 +19,7 @@ or the test that proves it.
 | 12 | How do you prove the DoD? | `pytest` (71 green) + `compileall` clean, plus 7 meta-tests: import-cycle DAG, public-function docstrings, module/class docstrings, public hints, no `print` outside `cli.py`, prompt-log ID hygiene, compile targets (`tests/test_definition_of_done.py`). |
 | 13 | Where is every FR tested? | Traceability table in `tests/test_pipeline.py` module docstring — FR-B1..B7 each map to named tests (story 4.1). |
 | 14 | Is the AI process itself auditable? | Every user→AI prompt logged append-only under `<PHASE>-<NNN>` in root `PROMPTS_LOG.md` (AD-5), enforced by a meta-test. |
-| 15 | Why a flat layout, not a package? | Architecture decision: single-purpose CLI case study; one-way module graph `cli → {dataset, evaluate, model} → config` plus `evaluate → model`, verified acyclic by meta-test (AD-B2). |
+| 15 | Why a flat layout, not a package? | Architecture decision: single-purpose CLI case study; one-way module graph `cli → {dataset, evaluate, model} → config` plus `evaluate → model`, verified acyclic by meta-test (AD-2). |
 | 16 | Can I reproduce this in one command? | `uv run python -m pytest -q` (~3 s, 71 passed) and `uv run python main.py --no-loop` (demo run). `.venv` recreates via `uv venv` + `uv pip install -r requirements.txt`. |
 | 17 | What do SPAM/HAM mean numerically? | Label contract `SPAM = 1` / `HAM = 0` (`config.py`); positive-class metrics assume it (`test_evaluation_metrics`, unicode agreement assertion). |
 | 18 | What exit codes and tuning flags exist? | `0` success, `1` handled errors (missing data/model, bad split); `--classifier lr`, `--test-size`, `--save-model [PATH]` (default `models/spam-model.joblib`); TSV via `--data file.tsv`. |

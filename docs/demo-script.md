@@ -7,6 +7,8 @@ present). Timings: each step runs in ~1–3 s.
 Prereqs: `.venv` from `uv venv` + `uv pip install -r requirements.txt`; all
 commands prefixed with `uv run` (bare `python` is a broken Store stub here).
 Paths below render with `\` separators on Windows; commands are typed with `/`.
+Outputs were captured on the built-in fallback data — rerun the commands to
+regenerate them if the code changes.
 
 ## 1. Dataset resolution (FR-B2, NFR-B2)
 
