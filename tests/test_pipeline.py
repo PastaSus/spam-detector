@@ -1,8 +1,37 @@
-"""Unit tests for the spam-detector pipeline (no network, fully deterministic)."""
+"""Unit tests for the spam-detector pipeline (no network, fully deterministic).
+
+FR traceability (story 4.1 — every FR has at least one passing test):
+
+- FR-B1 (pipeline structure): test_lab_reference_structure,
+  test_logistic_regression_alternative, test_unknown_classifier_raises
+- FR-B2 (dataset loading): test_fallback_dataframe_shape_and_labels,
+  test_normalize_label_variants, test_load_dataset_from_csv_roundtrip,
+  test_header_row_is_dropped_not_parsed_as_data,
+  test_explicit_missing_file_raises, test_missing_file_falls_back_to_builtin
+- FR-B3 (deterministic split): test_split_is_stratified_and_deterministic,
+  test_split_rejects_single_class
+- FR-B4 (metrics report): test_evaluation_metrics
+- FR-B5 (label + confidence): test_predict_with_confidence_contract,
+  test_spammy_prize_message_detected, test_meeting_reminder_detected_as_ham
+- FR-B6 (interactive loop): test_loop_classifies_then_quits,
+  test_loop_exit_commands, test_loop_blank_input_reprompts,
+  test_loop_eof_exits_cleanly, test_loop_output_format
+- FR-B7 (persistence): test_metrics_path_for_derives_sidecar_name,
+  test_save_model_writes_pipeline_and_metrics_sidecar,
+  test_save_model_without_metrics_writes_no_sidecar,
+  test_saved_model_round_trips_predictions, test_cli_save_model_passes_report,
+  test_cli_load_model_prints_stored_metrics,
+  test_cli_load_model_without_sidecar_skips_evaluation,
+  test_cli_load_model_missing_path_exits_nonzero,
+  test_load_metrics_absent_sidecar_returns_empty,
+  test_cli_load_model_corrupt_sidecar_exits_nonzero,
+  test_cli_load_model_ignores_missing_dataset
+"""
 from __future__ import annotations
 
 import json
 import logging
+import re
 from argparse import Namespace
 from dataclasses import asdict
 from pathlib import Path
@@ -12,7 +41,7 @@ import pytest
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
-from cli import main, run
+from cli import _interactive_loop, main, run
 from config import SPAM, TEST_SIZE, TFIDF_PARAMS
 from dataset import (
     FALLBACK_DATASET,
@@ -316,3 +345,122 @@ class TestPersistence:
         )
 
         assert run(args) == 0
+
+
+class TestInteractiveLoop:
+    @pytest.fixture()
+    def loop_pipeline(self):
+        df = fallback_dataframe()
+        X_train, _, y_train, _ = split_data(df)
+        return train(build_pipeline("nb"), X_train, y_train)
+
+    @staticmethod
+    def _scripted_input(monkeypatch: pytest.MonkeyPatch, inputs: list[str]) -> None:
+        script = iter(inputs)
+
+        def fake_input(_prompt: str = "") -> str:
+            try:
+                return next(script)
+            except StopIteration:
+                raise EOFError from None
+
+        monkeypatch.setattr("builtins.input", fake_input)
+
+    def test_loop_classifies_then_quits(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        self._scripted_input(
+            monkeypatch,
+            ["Win a free prize now!!!", "  Meeting at 10am tomorrow, see you there  ", "quit"],
+        )
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        out = capsys.readouterr().out
+        assert "SPAM" in out
+        assert "HAM" in out
+        assert out.count("confidence") == 2
+        assert "Goodbye." in out
+
+    @pytest.mark.parametrize("command", ["quit", "exit", ":q", "QUIT", "  quit  "])
+    def test_loop_exit_commands(
+        self,
+        loop_pipeline,
+        monkeypatch: pytest.MonkeyPatch,
+        capsys: pytest.CaptureFixture,
+        command: str,
+    ) -> None:
+        self._scripted_input(monkeypatch, [command])
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        out = capsys.readouterr().out
+        assert "Goodbye." in out
+        assert "confidence" not in out
+
+    def test_loop_message_containing_exit_word_classifies(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        self._scripted_input(monkeypatch, ["please quit now", "quit"])
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        out = capsys.readouterr().out
+        assert out.count("confidence") == 1
+        assert "Goodbye." in out
+
+    def test_loop_keyboard_interrupt_exits_cleanly(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        def fake_input(_prompt: str = "") -> str:
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr("builtins.input", fake_input)
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        assert "Goodbye." in capsys.readouterr().out
+
+    def test_loop_blank_input_reprompts(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        script = iter(["", "   ", "\t", "exit"])
+        calls: list[str] = []
+
+        def fake_input(_prompt: str = "") -> str:
+            try:
+                value = next(script)
+            except StopIteration:
+                raise EOFError from None
+            calls.append(value)
+            return value
+
+        monkeypatch.setattr("builtins.input", fake_input)
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        assert calls == ["", "   ", "\t", "exit"]
+        out = capsys.readouterr().out
+        assert "confidence" not in out
+        assert "Goodbye." in out
+
+    def test_loop_eof_exits_cleanly(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        self._scripted_input(monkeypatch, [])
+
+        assert _interactive_loop(loop_pipeline) is None
+
+        assert "Goodbye." in capsys.readouterr().out
+
+    def test_loop_output_format(
+        self, loop_pipeline, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        self._scripted_input(
+            monkeypatch, ["Meeting at 10am tomorrow, see you there", "quit"]
+        )
+
+        _interactive_loop(loop_pipeline)
+
+        out = capsys.readouterr().out
+        assert re.search(r"  HAM \(\d+\.\d% confidence\)", out)
