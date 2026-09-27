@@ -14,6 +14,7 @@ Everything is normalized into a Pandas DataFrame with columns ``text`` and
 from __future__ import annotations
 
 import logging
+import math
 from pathlib import Path
 
 import pandas as pd
@@ -170,6 +171,17 @@ def split_data(
         raise ValueError(
             "Stratified split needs at least 2 rows per class; got "
             f"{class_counts.to_dict()}."
+        )
+    n_classes = int(df["label"].nunique())
+    if isinstance(test_size, float):
+        test_rows = math.ceil(len(df) * test_size)
+    else:
+        test_rows = int(test_size)
+    if test_rows < n_classes:
+        raise ValueError(
+            "Test split would hold fewer rows than classes "
+            f"({test_rows} < {n_classes}); increase test_size so every class "
+            "appears in the test set."
         )
     return train_test_split(
         df["text"],

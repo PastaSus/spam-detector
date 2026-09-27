@@ -30,6 +30,7 @@ FR traceability (story 4.1 — every FR has at least one passing test):
 from __future__ import annotations
 
 import json
+import io
 import logging
 import re
 from argparse import Namespace
@@ -464,3 +465,95 @@ class TestInteractiveLoop:
 
         out = capsys.readouterr().out
         assert re.search(r"  HAM \(\d+\.\d% confidence\)", out)
+
+
+class TestEdgeCases:
+    @pytest.fixture()
+    def edge_pipeline(self):
+        df = fallback_dataframe()
+        X_train, _, y_train, _ = split_data(df)
+        return train(build_pipeline("nb"), X_train, y_train)
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "🎉 FREE prize $$$ claim now!!!",
+            "会议明天上午十点见",
+            "Café rendez-vous à midi, bisous 😘",
+            "",
+            "   ",
+            "‏مرحبا\u200b\u200d",
+            "spam " * 1000,
+        ],
+    )
+    def test_unicode_classifies_without_encoding_error(
+        self, edge_pipeline, text: str
+    ) -> None:
+        label, confidence = predict_with_confidence(edge_pipeline, text)
+        raw = predict_label(edge_pipeline, text)
+
+        assert label in {"SPAM", "HAM"}
+        assert 0.0 < confidence <= 100.0
+        assert raw in {0, 1}
+        assert (label == "SPAM") == (raw == SPAM)
+
+    @pytest.mark.parametrize("n_rows", [0, 1, 2, 3])
+    def test_split_rejects_tiny_dataset(self, n_rows: int) -> None:
+        df = pd.DataFrame(
+            {"text": [f"m{i}" for i in range(n_rows)], "label": [i % 2 for i in range(n_rows)]}
+        )
+
+        with pytest.raises(ValueError, match="at least 4 rows"):
+            split_data(df)
+
+    def test_split_rejects_thin_class(self) -> None:
+        df = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 0, 0, 0]})
+
+        with pytest.raises(ValueError, match="at least 2 rows per class"):
+            split_data(df)
+
+    def test_split_rejects_untestable_stratify(self) -> None:
+        df = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 1, 0, 0]})
+
+        with pytest.raises(ValueError, match="fewer rows than classes"):
+            split_data(df, test_size=0.2)
+
+    def test_split_accepts_minimal_balanced_frame(self) -> None:
+        df = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 1, 0, 0]})
+
+        X_train, X_test, _, _ = split_data(df, test_size=0.5)
+
+        assert len(X_train) == 2 and len(X_test) == 2
+
+    def test_cli_eof_stdin_exits_zero(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        import dataset as dataset_module
+
+        monkeypatch.setattr(
+            dataset_module, "SMS_SPAM_COLLECTION_PATH", tmp_path / "absent.csv"
+        )
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+
+        assert main([]) == 0
+
+        captured = capsys.readouterr()
+        assert "Goodbye." in captured.out
+        assert "Traceback" not in captured.err
+
+    def test_cli_fallback_run_warns_and_exits_zero(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        import dataset as dataset_module
+
+        monkeypatch.setattr(
+            dataset_module, "SMS_SPAM_COLLECTION_PATH", tmp_path / "absent.csv"
+        )
+
+        assert main(["--no-loop"]) == 0
+
+        out = capsys.readouterr().out
+        assert "DEMO" in out
+        assert "labelled rows" in out
+        assert "pass the real SMS Spam" in out
+        assert "Accuracy" in out
