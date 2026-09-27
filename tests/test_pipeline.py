@@ -557,6 +557,13 @@ class TestEdgeCases:
 
         assert len(X_train) == 2 and len(X_test) == 2
 
+    @pytest.mark.parametrize("bad_size", [0, 1, 1.5, -0.1, float("nan"), None, True, 99])
+    def test_split_rejects_bad_test_size(self, bad_size: object) -> None:
+        df = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 1, 0, 0]})
+
+        with pytest.raises(ValueError, match="test_size"):
+            split_data(df, test_size=bad_size)  # type: ignore[arg-type]
+
     def test_cli_eof_stdin_exits_zero(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
     ) -> None:

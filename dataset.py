@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import math
+import numbers
 from pathlib import Path
 
 import pandas as pd
@@ -175,10 +176,24 @@ def split_data(
             f"{class_counts.to_dict()}."
         )
     n_classes = int(df["label"].nunique())
-    if isinstance(test_size, float):
-        test_rows = math.ceil(len(df) * test_size)
-    else:
+    if isinstance(test_size, bool) or not isinstance(test_size, numbers.Real):
+        raise ValueError(
+            f"test_size must be a row count or a fraction; got {test_size!r}."
+        )
+    if isinstance(test_size, numbers.Integral):
         test_rows = int(test_size)
+    else:
+        if not 0.0 < float(test_size) < 1.0:
+            raise ValueError(
+                "test_size fraction must be strictly between 0 and 1; "
+                f"got {test_size!r}."
+            )
+        test_rows = math.ceil(len(df) * float(test_size))
+    if not 0 < test_rows < len(df):
+        raise ValueError(
+            f"test_size {test_size!r} leaves no usable train/test split for "
+            f"{len(df)} rows; adjust it so both splits are non-empty."
+        )
     if test_rows < n_classes:
         raise ValueError(
             "Test split would hold fewer rows than classes "
