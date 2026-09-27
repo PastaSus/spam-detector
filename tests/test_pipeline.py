@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from argparse import Namespace
 from dataclasses import asdict
 from pathlib import Path
@@ -11,7 +12,7 @@ import pytest
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
-from cli import run
+from cli import main, run
 from config import SPAM, TEST_SIZE, TFIDF_PARAMS
 from dataset import (
     FALLBACK_DATASET,
@@ -24,6 +25,7 @@ from dataset import (
 from evaluate import evaluate, format_report
 from model import (
     build_pipeline,
+    load_metrics,
     load_model,
     metrics_path_for,
     predict_with_confidence,
@@ -234,3 +236,83 @@ class TestPersistence:
 
         sidecar = metrics_path_for(model_path)
         assert json.loads(sidecar.read_text(encoding="utf-8"))["n_test"] > 0
+
+    def test_cli_load_model_prints_stored_metrics(
+        self, trained_report, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        pipeline, report = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path, metrics=asdict(report))
+        args = Namespace(
+            load_model=str(model_path),
+            data=None,
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=None,
+            no_loop=True,
+        )
+
+        assert run(args) == 0
+
+        out = capsys.readouterr().out
+        assert "stored metrics" in out
+        assert "Accuracy" in out
+        assert "Confusion matrix" in out
+
+    def test_cli_load_model_without_sidecar_skips_evaluation(
+        self, trained_report, tmp_path: Path, capsys: pytest.CaptureFixture
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        args = Namespace(
+            load_model=str(model_path),
+            data=None,
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=None,
+            no_loop=True,
+        )
+
+        assert run(args) == 0
+
+        assert "evaluation skipped" in capsys.readouterr().out
+
+    def test_cli_load_model_missing_path_exits_nonzero(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        with caplog.at_level(logging.ERROR):
+            result = main(["--load-model", str(tmp_path / "absent.joblib"), "--no-loop"])
+
+        assert result == 1
+        assert "Could not load model" in caplog.text
+
+    def test_load_metrics_absent_sidecar_returns_empty(self, tmp_path: Path) -> None:
+        assert load_metrics(tmp_path / "absent.joblib") == {}
+
+    def test_cli_load_model_corrupt_sidecar_exits_nonzero(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        metrics_path_for(model_path).write_text('{"accuracy": 1.0}', encoding="utf-8")
+
+        assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_cli_load_model_ignores_missing_dataset(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, report = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path, metrics=asdict(report))
+        args = Namespace(
+            load_model=str(model_path),
+            data=str(tmp_path / "absent.csv"),
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=None,
+            no_loop=True,
+        )
+
+        assert run(args) == 0
