@@ -106,3 +106,15 @@ def load_model(path: Path | str) -> Pipeline:
     pipeline = joblib.load(source)
     logger.info("Model loaded from %s", source)
     return pipeline
+
+
+def load_metrics(model_path: Path | str) -> dict[str, Any]:
+    """Read the stored metrics sidecar for a saved model (FR-B7).
+
+    Returns an empty dict when no sidecar exists, so callers treat missing
+    metrics as "not available" rather than an error.
+    """
+    sidecar = metrics_path_for(model_path)
+    if not sidecar.is_file():
+        return {}
+    return json.loads(sidecar.read_text(encoding="utf-8"))

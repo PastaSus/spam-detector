@@ -17,9 +17,10 @@ from config import (
     TEST_SIZE,
 )
 from dataset import load_dataset, resolve_dataset_path, split_data
-from evaluate import evaluate, format_report
+from evaluate import EvaluationReport, evaluate, format_report
 from model import (
     build_pipeline,
+    load_metrics,
     load_model,
     metrics_path_for,
     predict_with_confidence,
@@ -111,7 +112,19 @@ def run(args: argparse.Namespace) -> int:
             pipeline = load_model(args.load_model)
         except Exception as exc:
             raise ValueError(f"Could not load model from {args.load_model}: {exc}") from exc
-        print(f"Loaded model from {args.load_model} (evaluation skipped).")
+        stored = load_metrics(args.load_model)
+        if stored:
+            try:
+                stored_report = format_report(EvaluationReport(**stored))
+            except (TypeError, KeyError, IndexError) as exc:
+                raise ValueError(
+                    f"Stored metrics for {args.load_model} are unreadable: {exc}"
+                ) from exc
+            print(f"Loaded model from {args.load_model} (stored metrics):")
+            print()
+            print(stored_report)
+        else:
+            print(f"Loaded model from {args.load_model} (evaluation skipped).")
     else:
         source = resolve_dataset_path(args.data)  # raises if explicit path is missing
         df = load_dataset(source)
