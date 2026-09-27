@@ -30,3 +30,6 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-015 | 2026-09-27 | Tech Lead | 1 | apply all 6 code-review patch entries on a fix/ branch with atomic commits | In progress |
 | INIT-016 | 2026-09-27 | Tech Lead | what about epic 1,2 code-review? | Epic 1-2 code was inside the reviewed full-build diff; offered targeted pass vs accept | Done |
 | INIT-017 | 2026-09-27 | Tech Lead | aight option 1 then. | accepted full-build coverage; all 12 stories + 4 epics marked done | Done |
+| INIT-018 | 2026-09-27 | Tech Lead | what do you recommend | recommended AGENTS.md block, flag-combo fix, INIT backfill by user, skip retrospective | Done |
+| INIT-019 | 2026-09-27 | Tech Lead | alright go ahead | approved AGENTS.md splice + flag-combo fix (queued behind story backfill) | Done |
+| INIT-020 | 2026-09-27 | Tech Lead | we dont have epic 1 and epic 2 stories in _bmad-output/implementation-artifacts folder thats weird make sure to generate them | backfill story spec files 1-1..2-2 as done from epics.md + code | In progress |
