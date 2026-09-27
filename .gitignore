@@ -1,0 +1,46 @@
+# --- Agent / BMAD runtime (installer-managed, rebuildable) ---
+_bmad/
+.agents/
+.opencode/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# --- Virtual envs ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Test / lint caches ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Secrets / local env ---
+.env
+.env.*
+*.local
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# --- Trained model artifacts (regenerate with model.py) ---
+models/
+
+# --- Dataset (user-supplied, keep the 10-row demo only) ---
+data/sms_spam_collection.csv

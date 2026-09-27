@@ -1,0 +1,9 @@
+# SMS Spam Classifier — dependencies (pure Python + scikit-learn per lab sheet)
+
+scikit-learn>=1.4      # TfidfVectorizer, MultinomialNB, metrics, train_test_split
+pandas>=2.0            # DataFrame loading (lab: "into a Pandas DataFrame")
+numpy>=1.24
+joblib>=1.3            # model persistence (--save-model / --load-model)
+
+# --- Tooling ---
+pytest>=8.0            # QA Agent test suite
