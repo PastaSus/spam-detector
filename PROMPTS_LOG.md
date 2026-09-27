@@ -28,3 +28,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-013 | 2026-09-27 | Tech Lead | pr done next. | PR #6 merged to `main`; local 4.3 branch deleted; story 4.4 next | Done |
 | INIT-014 | 2026-09-27 | Tech Lead | time for review we also need to clean the branches right? | code review run; merged remote story branches deleted | In progress |
 | INIT-015 | 2026-09-27 | Tech Lead | 1 | apply all 6 code-review patch entries on a fix/ branch with atomic commits | In progress |
+| INIT-016 | 2026-09-27 | Tech Lead | what about epic 1,2 code-review? | Epic 1-2 code was inside the reviewed full-build diff; offered targeted pass vs accept | Done |
+| INIT-017 | 2026-09-27 | Tech Lead | aight option 1 then. | accepted full-build coverage; all 12 stories + 4 epics marked done | Done |
