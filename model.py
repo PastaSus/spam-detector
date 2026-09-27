@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB
@@ -39,7 +40,7 @@ def build_pipeline(classifier: str = DEFAULT_CLASSIFIER) -> Pipeline:
     )
 
 
-def train(pipeline: Pipeline, X_train, y_train) -> Pipeline:
+def train(pipeline: Pipeline, X_train: pd.Series, y_train: pd.Series) -> Pipeline:
     """Fit the pipeline on the training corpus and return it."""
     pipeline.fit(X_train, y_train)
     logger.debug("Trained pipeline on %d samples", len(X_train))
@@ -47,6 +48,7 @@ def train(pipeline: Pipeline, X_train, y_train) -> Pipeline:
 
 
 def display_label(label: int) -> str:
+    """Render a label int as SPAM/HAM."""
     return "SPAM" if int(label) == SPAM else "HAM"
 
 

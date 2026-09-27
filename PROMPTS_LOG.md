@@ -24,3 +24,4 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-009 | 2026-09-27 | Tech Lead | merge done next story i guess | PR #1 merged to `main` (`4fe2e48`); local story branch deleted; story 3.2 next | Done |
 | INIT-010 | 2026-09-27 | Tech Lead | pr done. next | PRs #2/#3 merged to `main`; local 3.2 branch deleted; story 4.1 next | Done |
 | INIT-011 | 2026-09-27 | Tech Lead | pr doone next | PR #4 merged to `main`; local 4.1 branch deleted; story 4.2 next | Done |
+| INIT-012 | 2026-09-27 | Tech Lead | next | PR #5 merged to `main`; local 4.2 branch deleted; story 4.3 next | Done |

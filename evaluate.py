@@ -7,7 +7,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.pipeline import Pipeline
 
 from config import HAM, SPAM
 from model import display_label
@@ -27,10 +29,11 @@ class EvaluationReport:
 
     @property
     def accuracy_pct(self) -> float:
+        """Accuracy as a percentage."""
         return self.accuracy * 100.0
 
 
-def evaluate(pipeline, X_test, y_test) -> EvaluationReport:
+def evaluate(pipeline: Pipeline, X_test: pd.Series, y_test: pd.Series) -> EvaluationReport:
     """Compute accuracy, classification report, and 2x2 confusion matrix (FR-B4)."""
     y_pred = pipeline.predict(X_test)
     return EvaluationReport(
