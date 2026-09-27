@@ -250,6 +250,9 @@ class TestPersistence:
 
         for text in texts:
             assert predict_label(reloaded, text) == predict_label(pipeline, text)
+            assert predict_with_confidence(reloaded, text) == predict_with_confidence(
+                pipeline, text
+            )
 
     def test_cli_save_model_passes_report(self, tmp_path: Path) -> None:
         model_path = tmp_path / "cli-model.joblib"
@@ -329,6 +332,38 @@ class TestPersistence:
         metrics_path_for(model_path).write_text('{"accuracy": 1.0}', encoding="utf-8")
 
         assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_cli_load_model_truncated_sidecar_exits_nonzero(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        metrics_path_for(model_path).write_text('{"accuracy":', encoding="utf-8")
+
+        assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_cli_load_model_non_object_sidecar_exits_nonzero(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        metrics_path_for(model_path).write_text('[1, 2, 3]', encoding="utf-8")
+
+        assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_save_model_bad_metrics_writes_no_files(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "nested" / "m.joblib"
+
+        with pytest.raises(TypeError):
+            save_model(pipeline, model_path, metrics={"bad": object()})
+
+        assert not model_path.exists()
+        assert not metrics_path_for(model_path).exists()
 
     def test_cli_load_model_ignores_missing_dataset(
         self, trained_report, tmp_path: Path
@@ -525,6 +560,13 @@ class TestEdgeCases:
 
         assert len(X_train) == 2 and len(X_test) == 2
 
+    @pytest.mark.parametrize("bad_size", [0, 1, 1.5, -0.1, float("nan"), None, True, 99])
+    def test_split_rejects_bad_test_size(self, bad_size: object) -> None:
+        df = pd.DataFrame({"text": ["a", "b", "c", "d"], "label": [1, 1, 0, 0]})
+
+        with pytest.raises(ValueError, match="test_size"):
+            split_data(df, test_size=bad_size)  # type: ignore[arg-type]
+
     def test_cli_eof_stdin_exits_zero(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
     ) -> None:
@@ -540,6 +582,35 @@ class TestEdgeCases:
         captured = capsys.readouterr()
         assert "Goodbye." in captured.out
         assert "Traceback" not in captured.err
+
+    def test_cli_loop_spec_example_strings(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Story 2.2 AC: exact example strings classify correctly via the CLI."""
+        import dataset as dataset_module
+
+        monkeypatch.setattr(
+            dataset_module, "SMS_SPAM_COLLECTION_PATH", tmp_path / "absent.csv"
+        )
+        monkeypatch.setattr(
+            "sys.stdin",
+            io.StringIO(
+                "Congratulations, you won a prize! Claim now\n"
+                "Meeting at 10am tomorrow, see you there\n"
+                "quit\n"
+            ),
+        )
+
+        assert main([]) == 0
+
+        out = capsys.readouterr().out
+        assert re.search(r"  SPAM \(\d+\.\d% confidence\)", out)
+        assert re.search(r"  HAM \(\d+\.\d% confidence\)", out)
+        spam_line = next(
+            line for line in out.splitlines() if "SPAM" in line and "confidence" in line
+        )
+        assert float(re.search(r"\((\d+\.\d)%", spam_line).group(1)) > 50.0
+        assert "Goodbye." in out
 
     def test_cli_fallback_run_warns_and_exits_zero(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture

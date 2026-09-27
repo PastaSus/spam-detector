@@ -17,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODULES = sorted(p.stem for p in ROOT.glob("*.py"))
 UI_MODULES = {"cli"}  # print() is user-facing output only here
-COMPILE_TARGETS = ["main.py", "cli.py", "config.py", "dataset.py", "model.py", "evaluate.py", "tests"]
+COMPILE_TARGETS = [f"{module}.py" for module in MODULES] + ["tests"]
 
 PROMPT_ID = re.compile(r"^(INIT|PM|ARCH|DEV|QA)-(\d{3})$")
 PROMPT_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -139,14 +139,12 @@ def _is_banned_output(node: ast.AST) -> bool:
     func = node.func
     if isinstance(func, ast.Name) and func.id in {"print", "pprint", "breakpoint"}:
         return True
-    return (
-        isinstance(func, ast.Attribute)
-        and func.attr == "write"
-        and isinstance(func.value, ast.Attribute)
-        and func.value.attr == "stdout"
-        and isinstance(func.value.value, ast.Name)
-        and func.value.value.id == "sys"
-    )
+    if isinstance(func, ast.Attribute) and func.attr in {"pprint", "write"}:
+        target = func.value
+        while isinstance(target, ast.Attribute):
+            target = target.value
+        return isinstance(target, ast.Name) and target.id in {"pprint", "sys"}
+    return False
 
 
 def test_no_print_debugging() -> None:

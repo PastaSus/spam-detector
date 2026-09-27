@@ -123,7 +123,7 @@ def run(args: argparse.Namespace) -> int:
         if stored:
             try:
                 stored_report = format_report(EvaluationReport(**stored))
-            except (TypeError, KeyError, IndexError) as exc:
+            except (TypeError, KeyError, IndexError, AttributeError) as exc:
                 raise ValueError(
                     f"Stored metrics for {args.load_model} are unreadable: {exc}"
                 ) from exc
