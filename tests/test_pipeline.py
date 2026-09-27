@@ -330,6 +330,38 @@ class TestPersistence:
 
         assert main(["--load-model", str(model_path), "--no-loop"]) == 1
 
+    def test_cli_load_model_truncated_sidecar_exits_nonzero(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        metrics_path_for(model_path).write_text('{"accuracy":', encoding="utf-8")
+
+        assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_cli_load_model_non_object_sidecar_exits_nonzero(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path)
+        metrics_path_for(model_path).write_text('[1, 2, 3]', encoding="utf-8")
+
+        assert main(["--load-model", str(model_path), "--no-loop"]) == 1
+
+    def test_save_model_bad_metrics_writes_no_files(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "nested" / "m.joblib"
+
+        with pytest.raises(TypeError):
+            save_model(pipeline, model_path, metrics={"bad": object()})
+
+        assert not model_path.exists()
+        assert not metrics_path_for(model_path).exists()
+
     def test_cli_load_model_ignores_missing_dataset(
         self, trained_report, tmp_path: Path
     ) -> None:

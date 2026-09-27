@@ -119,4 +119,7 @@ def load_metrics(model_path: Path | str) -> dict[str, Any]:
     sidecar = metrics_path_for(model_path)
     if not sidecar.is_file():
         return {}
-    return json.loads(sidecar.read_text(encoding="utf-8"))
+    data = json.loads(sidecar.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"Metrics sidecar is not a JSON object: {sidecar}")
+    return data
