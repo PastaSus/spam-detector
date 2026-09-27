@@ -53,7 +53,7 @@ development_status:
   epic-3-retrospective: optional
 
   epic-4: in-progress
-  4-1-cover-every-fr-with-automated-tests: in-progress
+  4-1-cover-every-fr-with-automated-tests: review
   4-2-attack-the-edge-cases: in-progress
   4-3-prove-the-definition-of-done: in-progress
   4-4-assemble-the-demo-script-and-q-a-sheet: backlog
