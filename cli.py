@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import logging
 from collections.abc import Sequence
+from dataclasses import asdict
 from pathlib import Path
 
 from config import (
@@ -20,6 +21,7 @@ from evaluate import evaluate, format_report
 from model import (
     build_pipeline,
     load_model,
+    metrics_path_for,
     predict_with_confidence,
     save_model,
     train,
@@ -134,8 +136,8 @@ def run(args: argparse.Namespace) -> int:
         print(format_report(report))
 
         if args.save_model:
-            saved = save_model(pipeline, Path(args.save_model))
-            print(f"\nModel saved to {saved}")
+            saved = save_model(pipeline, Path(args.save_model), metrics=asdict(report))
+            print(f"\nModel saved to {saved} (metrics: {metrics_path_for(saved)})")
 
     if args.no_loop:
         return 0

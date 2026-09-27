@@ -1,6 +1,9 @@
 """Unit tests for the spam-detector pipeline (no network, fully deterministic)."""
 from __future__ import annotations
 
+import json
+from argparse import Namespace
+from dataclasses import asdict
 from pathlib import Path
 
 import pandas as pd
@@ -8,7 +11,8 @@ import pytest
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
-from config import SPAM, TFIDF_PARAMS
+from cli import run
+from config import SPAM, TEST_SIZE, TFIDF_PARAMS
 from dataset import (
     FALLBACK_DATASET,
     fallback_dataframe,
@@ -18,7 +22,15 @@ from dataset import (
     split_data,
 )
 from evaluate import evaluate, format_report
-from model import build_pipeline, predict_with_confidence, predict_label, train
+from model import (
+    build_pipeline,
+    load_model,
+    metrics_path_for,
+    predict_with_confidence,
+    predict_label,
+    save_model,
+    train,
+)
 
 
 class TestDataset:
@@ -153,3 +165,72 @@ class TestPipeline:
         rendered = format_report(report)
         assert "Accuracy" in rendered
         assert "Confusion matrix" in rendered
+
+
+class TestPersistence:
+    @pytest.fixture()
+    def trained_report(self):
+        df = fallback_dataframe()
+        X_train, X_test, y_train, y_test = split_data(df)
+        pipeline = train(build_pipeline("nb"), X_train, y_train)
+        return pipeline, evaluate(pipeline, X_test, y_test)
+
+    def test_metrics_path_for_derives_sidecar_name(self, tmp_path: Path) -> None:
+        model_path = tmp_path / "models" / "spam-model.joblib"
+
+        assert metrics_path_for(model_path) == tmp_path / "models" / "spam-model-metrics.json"
+
+    def test_save_model_writes_pipeline_and_metrics_sidecar(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, report = trained_report
+        model_path = tmp_path / "nested" / "spam-model.joblib"
+
+        saved = save_model(pipeline, model_path, metrics=asdict(report))
+
+        assert saved == model_path
+        assert model_path.is_file()
+        sidecar = metrics_path_for(model_path)
+        assert sidecar.is_file()
+        assert json.loads(sidecar.read_text(encoding="utf-8")) == asdict(report)
+
+    def test_save_model_without_metrics_writes_no_sidecar(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        model_path = tmp_path / "spam-model.joblib"
+
+        save_model(pipeline, model_path)
+
+        assert model_path.is_file()
+        assert not metrics_path_for(model_path).exists()
+
+    def test_saved_model_round_trips_predictions(
+        self, trained_report, tmp_path: Path
+    ) -> None:
+        pipeline, _ = trained_report
+        texts = [
+            "You've won a prize! Claim your free gift now",
+            "Meeting at 10am tomorrow, see you there",
+        ]
+
+        reloaded = load_model(save_model(pipeline, tmp_path / "spam-model.joblib"))
+
+        for text in texts:
+            assert predict_label(reloaded, text) == predict_label(pipeline, text)
+
+    def test_cli_save_model_passes_report(self, tmp_path: Path) -> None:
+        model_path = tmp_path / "cli-model.joblib"
+        args = Namespace(
+            load_model=None,
+            data=None,
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=str(model_path),
+            no_loop=True,
+        )
+
+        assert run(args) == 0
+
+        sidecar = metrics_path_for(model_path)
+        assert json.loads(sidecar.read_text(encoding="utf-8"))["n_test"] > 0

@@ -6,8 +6,11 @@ with Logistic Regression available as the lab's permitted alternative.
 """
 from __future__ import annotations
 
+import json
 import logging
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -65,12 +68,33 @@ def predict_with_confidence(pipeline: Pipeline, text: str) -> tuple[str, float]:
     return display_label(label), confidence
 
 
-def save_model(pipeline: Pipeline, path: Path | str) -> Path:
-    """Persist the trained pipeline with joblib (FR-B7)."""
+def metrics_path_for(path: Path | str) -> Path:
+    """Return the JSON sidecar path holding a saved model's metrics (FR-B7)."""
+    target = Path(path)
+    return target.with_name(f"{target.stem}-metrics.json")
+
+
+def save_model(
+    pipeline: Pipeline,
+    path: Path | str,
+    metrics: Mapping[str, Any] | None = None,
+) -> Path:
+    """Persist the trained pipeline with joblib (FR-B7).
+
+    When ``metrics`` is given, the mapping must be JSON-serializable and is
+    also written to the sidecar from :func:`metrics_path_for`, so the metrics
+    of the run that produced the model travel with the model file.
+    """
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
+    # Serialise first so a bad mapping fails before any file is written.
+    payload = json.dumps(dict(metrics), indent=2) + "\n" if metrics is not None else None
     joblib.dump(pipeline, target)
     logger.info("Model saved to %s", target)
+    if payload is not None:
+        sidecar = metrics_path_for(target)
+        sidecar.write_text(payload, encoding="utf-8")
+        logger.info("Metrics saved to %s", sidecar)
     return target
 
 

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 09-27-2026 17:27
-last_updated: 09-27-2026 17:30
+last_updated: 09-27-2026 17:45
 project: spam-detector
 project_key: NOKEY
 tracking_system: file-system
@@ -48,7 +48,7 @@ development_status:
   epic-2-retrospective: optional
 
   epic-3: in-progress
-  3-1-persist-the-trained-model-and-its-metrics: in-progress
+  3-1-persist-the-trained-model-and-its-metrics: review
   3-2-reload-a-saved-model-without-retraining: in-progress
   epic-3-retrospective: optional
 
