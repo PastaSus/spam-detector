@@ -43,3 +43,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | QA-007 | 2026-10-06 | Tech Lead | alright go ahead then | bmad-build review-hardening batch: flag warnings, clean Ctrl+C, lr + TSV tests | Done |
 | QA-008 | 2026-10-06 | Tech Lead | pr done | PR #13 merged; local branch deleted | Done |
 | QA-009 | 2026-10-06 | Tech Lead | go ahead | approved AGENTS.md refresh splice (L1–L3 rewrites) | Done |
+| QA-010 | 2026-10-06 | Tech Lead | pr done now what? | PR #14 merged; local branch deleted | Done |
+| QA-011 | 2026-10-06 | Tech Lead | sure go ahead and commmmmit | commit QA-010 row on its own branch | Done |
