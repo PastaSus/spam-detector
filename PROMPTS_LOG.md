@@ -39,3 +39,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | QA-003 | 2026-10-06 | Tech Lead | go ahead and make the branch and atomically and aconventionally commit changes | branch `docs/fix-stale-test-counts`; `0126570` docs(demo) + `e6a023d` chore(prompts) | Done |
 | QA-004 | 2026-10-06 | Tech Lead | list of things left todo? | status list only (no artifacts changed) | Done |
 | QA-005 | 2026-10-06 | Tech Lead | done merging to mmain | PR #11 merged; branch cleanup + QA-003/QA-004 commit queued | Done |
+| QA-006 | 2026-10-06 | Tech Lead | pr done. what next? | PR #12 merged; next-step recommendation | Done |
+| QA-007 | 2026-10-06 | Tech Lead | alright go ahead then | bmad-build review-hardening batch: flag warnings, clean Ctrl+C, lr + TSV tests | Done |

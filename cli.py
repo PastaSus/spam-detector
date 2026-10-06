@@ -72,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default=None,
         metavar="PATH",
-        help="skip training and load a saved model",
+        help="skip training and load a saved model (train-only flags are ignored)",
     )
     parser.add_argument(
         "--save-model",
@@ -123,6 +123,20 @@ def run(args: argparse.Namespace) -> int:
             logger.warning(
                 "--save-model is ignored with --load-model: nothing retrained, nothing re-saved."
             )
+        ignored_train_flags = [
+            flag
+            for flag, overridden in (
+                ("--data", args.data is not None),
+                ("--classifier", args.classifier != DEFAULT_CLASSIFIER),
+                ("--test-size", args.test_size != TEST_SIZE),
+            )
+            if overridden
+        ]
+        for flag in ignored_train_flags:
+            logger.warning(
+                "%s is ignored with --load-model: the saved model is used as-is.",
+                flag,
+            )
         stored = load_metrics(args.load_model)
         if stored:
             try:
@@ -172,7 +186,8 @@ def run(args: argparse.Namespace) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse argv, configure logging, and run the CLI.
 
-    Returns the process exit code (0 on success, 1 on handled errors).
+    Returns the process exit code (0 on success, 1 on handled errors,
+    130 on keyboard interrupt).
     """
     args = build_parser().parse_args(argv)
     logging.basicConfig(
@@ -190,6 +205,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     except OSError as exc:
         logger.error("Filesystem error: %s", exc)
         return 1
+    except KeyboardInterrupt:
+        print("\nInterrupted.")
+        return 130
 
 
 if __name__ == "__main__":
