@@ -16,10 +16,10 @@ or the test that proves it.
 | 9 | Are reloaded predictions identical? | Yes (NFR-B1; `test_saved_model_round_trips_predictions`). |
 | 10 | Does it work offline? | No network at runtime; suite runs offline and deterministic (NFR-B4; whole suite). |
 | 11 | Unicode / EOF / Ctrl+C? | Emoji/CJK/accents/empty/RTL classify without encoding errors (`test_unicode_classifies_without_encoding_error`); EOF exits 0 with no traceback at loop and CLI level (`test_loop_eof_exits_cleanly`, `test_cli_eof_stdin_exits_zero`); Ctrl+C clean (loop test). |
-| 12 | How do you prove the DoD? | `pytest` (71 green) + `compileall` clean, plus 7 meta-tests: import-cycle DAG, public-function docstrings, module/class docstrings, public hints, no `print` outside `cli.py`, prompt-log ID hygiene, compile targets (`tests/test_definition_of_done.py`). |
+| 12 | How do you prove the DoD? | `pytest` (84 green) + `compileall` clean, plus 7 meta-tests: import-cycle DAG, public-function docstrings, module/class docstrings, public hints, no `print` outside `cli.py`, prompt-log ID hygiene, compile targets (`tests/test_definition_of_done.py`). |
 | 13 | Where is every FR tested? | Traceability table in `tests/test_pipeline.py` module docstring — FR-B1..B7 each map to named tests (story 4.1). |
 | 14 | Is the AI process itself auditable? | Every user→AI prompt logged append-only under `<PHASE>-<NNN>` in root `PROMPTS_LOG.md` (AD-5), enforced by a meta-test. |
 | 15 | Why a flat layout, not a package? | Architecture decision: single-purpose CLI case study; one-way module graph `cli → {dataset, evaluate, model} → config` plus `evaluate → model`, verified acyclic by meta-test (AD-2). |
-| 16 | Can I reproduce this in one command? | `uv run python -m pytest -q` (~3 s, 71 passed) and `uv run python main.py --no-loop` (demo run). `.venv` recreates via `uv venv` + `uv pip install -r requirements.txt`. |
+| 16 | Can I reproduce this in one command? | `uv run python -m pytest -q` (~32 s, 84 passed) and `uv run python main.py --no-loop` (demo run). `.venv` recreates via `uv venv` + `uv pip install -r requirements.txt`. |
 | 17 | What do SPAM/HAM mean numerically? | Label contract `SPAM = 1` / `HAM = 0` (`config.py`); positive-class metrics assume it (`test_evaluation_metrics`, unicode agreement assertion). |
 | 18 | What exit codes and tuning flags exist? | `0` success, `1` handled errors (missing data/model, bad split); `--classifier lr`, `--test-size`, `--save-model [PATH]` (default `models/spam-model.joblib`); TSV via `--data file.tsv`. |

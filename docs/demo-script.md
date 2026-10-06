@@ -114,7 +114,7 @@ Clean up after the demo: `rm -rf models` (or `rmdir /s models` on Windows).
 
 ```console
 $ uv run python -m pytest -q
-71 passed in ~3s
+84 passed in ~32s
 $ uv run python -m compileall main.py cli.py config.py dataset.py model.py evaluate.py tests
 ```
 

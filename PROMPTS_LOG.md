@@ -34,3 +34,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-019 | 2026-09-27 | Tech Lead | alright go ahead | approved AGENTS.md splice + flag-combo fix (queued behind story backfill) | Done |
 | INIT-020 | 2026-09-27 | Tech Lead | we dont have epic 1 and epic 2 stories in _bmad-output/implementation-artifacts folder thats weird make sure to generate them | backfill story spec files 1-1..2-2 as done from epics.md + code | Done |
 | INIT-021 | 2026-09-27 | Tech Lead | do that then? | AGENTS.md git-rules splice + load/save combo fix | In progress |
+| QA-001 | 2026-10-06 | Tech Lead | bmad-help crawl the codebase and teach me how to use this spam detector program that imm video demo to my prof and also he will ask questions about source code. | orientation only (no artifacts changed); verified live: 84 passed, fallback metrics 0.60 | Done |
+| QA-002 | 2026-10-06 | Tech Lead | yes go ahead | `docs/demo-script.md` + `docs/qa-defense-sheet.md` test-count fixes (71→84) on branch `docs/fix-stale-test-counts`; bmad-review report (adversarial/edge/verification lenses) | Done |
