@@ -47,3 +47,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | QA-011 | 2026-10-06 | Tech Lead | sure go ahead and commmmmit | commit QA-010 row on its own branch | Done |
 | QA-012 | 2026-10-06 | Tech Lead | pr done | PR #15 merged; local main fast-forwarded, branch deleted | Done |
 | QA-013 | 2026-10-06 | Tech Lead | alright go ahead | commit QA-012 row on its own branch | Done |
+| QA-014 | 2026-10-06 | Tech Lead | pr done. next. | PR #16 merged; local main fast-forwarded, branch deleted | Done |
+| QA-015 | 2026-10-06 | Tech Lead | gp ahead | commit QA-014 row on its own branch | Done |
