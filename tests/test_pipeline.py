@@ -109,6 +109,25 @@ class TestDataset:
         assert len(df) == 2
         assert set(df["label"]) == {0, 1}
 
+    @pytest.mark.parametrize("filename", ["messages.tsv", "messages.tab", "MESSAGES.TSV"])
+    def test_load_dataset_from_tsv_roundtrip(self, tmp_path: Path, filename: str) -> None:
+        tsv = tmp_path / filename
+        tsv.write_text(
+            "label\ttext\n"
+            "spam\tYou won a prize, claim it now\n"
+            "ham\tHey, are we still on for tonight?\n"
+            "spam\tFree vacation — call now\n"
+            "ham\tRunning late, start without me\n",
+            encoding="utf-8",
+        )
+
+        df = load_dataset(tsv)
+
+        assert list(df.columns) == ["text", "label"]
+        assert sorted(df["label"].tolist()) == [0, 0, 1, 1]
+        # The ham line holds a comma: only a tab split keeps it in one piece.
+        assert "tonight" in df.loc[df["label"] == 0, "text"].iloc[0]
+
     def test_explicit_missing_file_raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):
             resolve_dataset_path(tmp_path / "nope.csv")
@@ -404,6 +423,47 @@ class TestPersistence:
         assert "--save-model is ignored" in caplog.text
         assert not resave_path.exists()
 
+    @pytest.mark.parametrize(
+        ("field", "value", "expected_flag"),
+        [
+            ("data", "absent.csv", "--data"),
+            ("classifier", "lr", "--classifier"),
+            ("test_size", 0.5, "--test-size"),
+        ],
+    )
+    def test_cli_load_model_warns_on_ignored_train_flags(
+        self,
+        trained_report,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
+        field: str,
+        value: object,
+        expected_flag: str,
+    ) -> None:
+        pipeline, report = trained_report
+        model_path = tmp_path / "m.joblib"
+        save_model(pipeline, model_path, metrics=asdict(report))
+        if field == "data":
+            value = str(tmp_path / str(value))
+        args = Namespace(
+            load_model=str(model_path),
+            data=None,
+            test_size=TEST_SIZE,
+            classifier="nb",
+            save_model=None,
+            no_loop=True,
+        )
+        setattr(args, field, value)
+
+        with caplog.at_level(logging.WARNING):
+            assert run(args) == 0
+
+        for flag in ("--data", "--classifier", "--test-size"):
+            if flag == expected_flag:
+                assert f"{flag} is ignored" in caplog.text
+            else:
+                assert f"{flag} is ignored" not in caplog.text
+
 
 class TestInteractiveLoop:
     @pytest.fixture()
@@ -650,3 +710,33 @@ class TestEdgeCases:
         assert "labelled rows" in out
         assert "pass the real SMS Spam" in out
         assert "Accuracy" in out
+
+    def test_cli_classifier_lr_end_to_end(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        """Review gap: --classifier lr must work through the full CLI path."""
+        import dataset as dataset_module
+
+        monkeypatch.setattr(
+            dataset_module, "SMS_SPAM_COLLECTION_PATH", tmp_path / "absent.csv"
+        )
+
+        assert main(["--classifier", "lr", "--no-loop"]) == 0
+
+        out = capsys.readouterr().out
+        assert "Classifier: lr" in out
+        assert "Accuracy" in out
+        assert "Confusion matrix" in out
+
+    def test_main_keyboard_interrupt_returns_130(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ) -> None:
+        import cli as cli_module
+
+        def _interrupted(_args: object) -> int:
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(cli_module, "run", _interrupted)
+
+        assert main([]) == 130
+        assert "Interrupted" in capsys.readouterr().out
