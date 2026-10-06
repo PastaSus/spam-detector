@@ -49,3 +49,5 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | QA-013 | 2026-10-06 | Tech Lead | alright go ahead | commit QA-012 row on its own branch | Done |
 | QA-014 | 2026-10-06 | Tech Lead | pr done. next. | PR #16 merged; local main fast-forwarded, branch deleted | Done |
 | QA-015 | 2026-10-06 | Tech Lead | gp ahead | commit QA-014 row on its own branch | Done |
+| QA-016 | 2026-10-06 | Tech Lead | pr done now what | PR #17 merged; local branch deleted | Done |
+| QA-017 | 2026-10-06 | Tech Lead | wtf were stuck on a loop ? shouldnt we sign off now? | final batch commit; loop was per-ping log entries, closed here | Done |
