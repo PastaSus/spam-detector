@@ -36,3 +36,6 @@ Append-only prompt log (Professor requirement · architecture AD-5 · `docs/bmad
 | INIT-021 | 2026-09-27 | Tech Lead | do that then? | AGENTS.md git-rules splice + load/save combo fix | In progress |
 | QA-001 | 2026-10-06 | Tech Lead | bmad-help crawl the codebase and teach me how to use this spam detector program that imm video demo to my prof and also he will ask questions about source code. | orientation only (no artifacts changed); verified live: 84 passed, fallback metrics 0.60 | Done |
 | QA-002 | 2026-10-06 | Tech Lead | yes go ahead | `docs/demo-script.md` + `docs/qa-defense-sheet.md` test-count fixes (71→84) on branch `docs/fix-stale-test-counts`; bmad-review report (adversarial/edge/verification lenses) | Done |
+| QA-003 | 2026-10-06 | Tech Lead | go ahead and make the branch and atomically and aconventionally commit changes | branch `docs/fix-stale-test-counts`; `0126570` docs(demo) + `e6a023d` chore(prompts) | Done |
+| QA-004 | 2026-10-06 | Tech Lead | list of things left todo? | status list only (no artifacts changed) | Done |
+| QA-005 | 2026-10-06 | Tech Lead | done merging to mmain | PR #11 merged; branch cleanup + QA-003/QA-004 commit queued | Done |
