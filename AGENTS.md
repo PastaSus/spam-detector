@@ -1,5 +1,5 @@
 <!-- bmad:context -->
-<!-- Verified 2026-09-27 against b2dd15e. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
+<!-- Verified 2026-10-06 against 6b14e75. Managed by bmad-project-context; edits inside this block are replaced on refresh. Keep anything you want preserved outside the markers. -->
 
 ## spam-detector
 
@@ -17,14 +17,14 @@ SMS spam text classifier for the university semifinals case study (Project B). F
 
 ## Where things are
 
-- Entry point: `main.py` → `cli.main()`; exit codes 0/1 are set in `cli.py`.
+- Entry point: `main.py` → `cli.main()`; exit codes 0/1/130 are set in `cli.py`.
 - `docs/bmad-plan.md` is the phase board and prompt-logging protocol — read it before changing process or scope.
 - Dataset resolution order is coded in `config.py`: `--data` > `data/sms_spam_collection.csv` > built-in 23-row fallback.
-- Tests: `tests/test_pipeline.py` (26, deterministic, offline).
+- Tests: `tests/test_pipeline.py` + `tests/test_definition_of_done.py` (92, deterministic, offline).
 
 ## Running and verifying
 
-- `uv run python -m pytest -q` — 26 passed in ~23s. Never invoke `python` directly: on this machine it is a Microsoft Store stub that fails, so always prefix with `uv run`.
+- `uv run python -m pytest -q` — 92 passed in ~3s. Never invoke `python` directly: on this machine it is a Microsoft Store stub that fails, so always prefix with `uv run`.
 - `uv run python main.py --no-loop` for non-interactive runs — bare `main.py` blocks on the `sms>` stdin loop.
 - DoD also requires `uv run python -m compileall main.py cli.py config.py dataset.py model.py evaluate.py tests` to be clean.
 - `.venv` was made with `uv venv` then `uv pip install -r requirements.txt`; recreate identically if it disappears.
